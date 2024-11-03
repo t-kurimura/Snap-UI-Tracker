@@ -1,13 +1,17 @@
-name: Base Workflows
+name: Take Screenshot Workflow
 
 on:
   push:
     branches:
-      - feature/base_workflows
+      - main
 
 jobs:
-  run-checkout-and-echo:
+  take-screen-shot:
     runs-on: ubuntu-latest
+    env:
+      URL: https://www.example.com # 任意のURLを設定
+      FILENAME: www_example_com.png
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -41,17 +45,14 @@ jobs:
               });
               
               const page = await browser.newPage();
+              const url = process.env.URL;
               const fileName = process.env.FILENAME;
               await page.setViewport({
                 width: 1200, 
                 height: 800
               });
-              await page.goto(\`https://www.example.com/\`, { waitUntil: 'networkidle2' });
-              await Promise.resolve(() => {
-                return new Promise(resolve => {
-                  setTimeout(resolve, 1000);
-                });
-              });
+              await page.goto(url, { waitUntil: 'networkidle2' });
+              await new Promise(resolve => setTimeout(resolve, 1000));
               const pageHeight = await page.evaluate(() => {
                 return Math.max(
                   document.body.scrollHeight,
@@ -65,19 +66,40 @@ jobs:
               await page.setViewport({
                 width: 1200,
                 height: pageHeight
-              });              
-             
+              });
               await page.screenshot({
-                path: 'screenshot.png',
+                path: fileName,
                 fullPage: true
               });
               await browser.close();
             })();
           "
+
       - name: Upload Screenshot Artifact
         uses: actions/upload-artifact@v4
         id: artifact
         with:
           name: screenshot
-          path: screenshot.png
+          path: env.FILE_NAME
           retention-days: 1
+
+  commit-screenshot:
+    runs-on: ubuntu-latest
+    needs: take-screen-shot
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Screenshot Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: screenshot
+          path: ./
+
+      - name: Commit Screenshot
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add screenshot.png
+          git commit -m "Add latest screenshot [skip ci]"
+          git push          
