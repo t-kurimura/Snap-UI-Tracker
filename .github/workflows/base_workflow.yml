@@ -1,0 +1,80 @@
+name: Base Workflows
+
+on:
+  push:
+    branches:
+      - feature/base_workflows
+
+jobs:
+  run-checkout-and-echo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:      
+          node-version: 20
+
+      - name: Install Japanese fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk fonts-noto-cjk-extra
+
+      - name: Run Puppeteer script to take a screenshot
+        if: env.MARKDOWN_FILE_PATH != ''
+        run: |
+          echo "Taking screenshot..."
+          node -e "
+            const puppeteer = require('puppeteer');
+            (async () => {
+              const browser = await puppeteer.launch({
+                args: [
+                  '--no-sandbox',
+                  '--disable-setuid-sandbox',
+                  '--font-render-hinting=none',
+                ]
+              });
+              
+              const page = await browser.newPage();
+              const fileName = process.env.FILENAME;
+              await page.setViewport({
+                width: 1200, 
+                height: 800
+              });
+              await page.goto(\`https://www.example.com/\`, { waitUntil: 'networkidle2' });
+              await Promise.resolve(() => {
+                return new Promise(resolve => {
+                  setTimeout(resolve, 1000);
+                });
+              });
+              const pageHeight = await page.evaluate(() => {
+                return Math.max(
+                  document.body.scrollHeight,
+                  document.documentElement.scrollHeight,
+                  document.body.offsetHeight,
+                  document.documentElement.offsetHeight,
+                  document.body.clientHeight,
+                  document.documentElement.clientHeight
+                );
+              });
+              await page.setViewport({
+                width: 1200,
+                height: pageHeight
+              });              
+             
+              await page.screenshot({
+                path: 'screenshot.png',
+                fullPage: true
+              });
+              await browser.close();
+            })();
+          "
+      - name: Upload Screenshot Artifact
+        uses: actions/upload-artifact@v4
+        id: artifact
+        with:
+          name: screenshot
+          path: screenshot.png
+          retention-days: 1
