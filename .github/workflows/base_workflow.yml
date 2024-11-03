@@ -80,8 +80,9 @@ jobs:
         id: artifact
         with:
           name: screenshot
-          path: env.FILE_NAME
+          path: ${{ env.FILE_NAME }}
           retention-days: 1
+          if-no-files-found: error
 
   commit-screenshot:
     runs-on: ubuntu-latest
