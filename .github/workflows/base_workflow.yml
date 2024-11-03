@@ -3,7 +3,7 @@ name: Take Screenshot Workflow
 on:
   push:
     branches:
-      - main
+      - feature/base_workflows
 
 jobs:
   take-screen-shot:
