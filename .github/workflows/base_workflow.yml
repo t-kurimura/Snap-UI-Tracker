@@ -98,11 +98,20 @@ jobs:
           ls 
           tree . 
 
+      - name: Generate file path
+        id: generate_file_path
+        run: |
+          date=$(date '+%Y%m%d')
+          unixtime=$(date '+%s')
+          file_path=./asset/${date}/${unixtime}
+          echo file_path=$file_path >> $GITHUB_OUTPUT
+
+
       - name: Download Screenshot Artifact
         uses: actions/download-artifact@v4
         with:
           name: screenshot
-          path: ./
+          path: ${{ steps.generate_file_path.outputs.file_path }}
 
       - name: Commit Screenshot
         run: |
@@ -110,4 +119,4 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add .
           git commit -m "Add latest screenshot [skip ci]"
-          git push          
+          git push
