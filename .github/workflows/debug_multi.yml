@@ -26,7 +26,7 @@ jobs:
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
-        with:      
+        with:
           node-version: 20
 
       - name: Install Japanese fonts
@@ -46,6 +46,7 @@ jobs:
             (async () => {
               let browser;
               const launchOptions = {
+                headless: true, // Ensure headless mode is enabled
                 args: ['--no-sandbox', '--disable-setuid-sandbox']
               };
               
