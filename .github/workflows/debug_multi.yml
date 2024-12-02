@@ -6,7 +6,7 @@ on:
       - sample/for_blog
 
 jobs:
-  screenshot:
+  shot:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -86,14 +86,14 @@ jobs:
             })();
           "
         env:
-          URL: 'https://example.com'
-          FILENAME: "example_${{ matrix.lang }}_${{ matrix.browser }}.png"
+          URL: 'https://example.com?lang=${{ matrix.lang }}'
+          FILENAME: "example_${{ matrix.lang }}_${{ matrix.browser }}_${{ matrix.device}}.png"
 
       - name: Upload Screenshot Artifact
         uses: actions/upload-artifact@v4
         with:
           name: screenshot-${{ matrix.lang }}-${{ matrix.browser }}
-          path: "example_${{ matrix.lang }}_${{ matrix.browser }}.png"
+          path: "example_${{ matrix.lang }}_${{ matrix.browser }}_${{ matrix.device}}.png"
           retention-days: 1
           if-no-files-found: error
           compression-level: 6
