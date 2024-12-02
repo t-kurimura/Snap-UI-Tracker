@@ -1,0 +1,72 @@
+name: Take Screenshot Workflow
+
+on:
+  push:
+    branches:
+      - sample/for_blog
+
+jobs:
+  take-screen-shot:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lang: ['ja', 'en', 'zh']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:      
+          node-version: 20
+
+      - name: Install Japanese fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk fonts-noto-cjk-extra
+
+      - name: Install puppeteer
+        run: |
+          npm install puppeteer
+
+      - name: Run Puppeteer script to take a screenshot
+        run: |
+          echo "${{ matrix.lang }}..."
+          node -e "
+            const puppeteer = require('puppeteer');
+            (async () => {
+              const browser = await puppeteer.launch({});              
+              const page = await browser.newPage();              ;
+              await page.setViewport({
+                width: 1200, 
+                height: 800
+              });
+              await page.setExtraHTTPHeaders({
+                'Accept-Language': '${{ matrix.lang }}'
+              });
+              await page.goto(
+                process.env.URL, 
+                { waitUntil: 'networkidle2' }
+              );
+              await page.screenshot({
+                path: process.env.FILENAME,
+                fullPage: true
+              });
+              await browser.close();
+            })();
+          "
+        env:
+          URL: https://example.com?lang=${{ matrix.lang }}'
+          FILENAME: "example_${{ matrix.lang }}.png"
+
+      - name: Upload Screenshot Artifact
+        uses: actions/upload-artifact@v4
+        id: artifact
+        with:
+          name: screenshot-${{ matrix.lang }}
+          path: "example_${{ matrix.lang }}.png"
+          retention-days: 1
+          if-no-files-found: error
+          compression-level: 6
+
