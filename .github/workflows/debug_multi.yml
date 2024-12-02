@@ -12,6 +12,7 @@ jobs:
       matrix:
         lang: ['ja', 'en', 'zh']
         browser: ['chrome', 'edge']
+        device: ['desktop', 'mobile', 'tablet']
 
     steps:
       - name: Checkout repository
@@ -56,10 +57,23 @@ jobs:
                   launchOptions.executablePath = '/usr/bin/microsoft-edge';
                   break;
               }
+
+              let viewport;
+              switch ('${{ matrix.device }}') {
+                case 'desktop':
+                  viewport = { width: 1200, height: 800 };
+                  break;
+                case 'mobile':
+                  viewport = { width: 375, height: 667 };
+                  break;
+                case 'tablet':
+                  viewport = { width: 768, height: 1024 };
+                  break;
+              }
               
               browser = await puppeteer.launch(launchOptions);
               const page = await browser.newPage();
-              await page.setViewport({ width: 1200, height: 800 });
+              await page.setViewport(viewport);
               await page.setExtraHTTPHeaders({
                 'Accept-Language': '${{ matrix.lang }}'
               });
