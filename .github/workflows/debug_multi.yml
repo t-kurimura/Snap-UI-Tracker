@@ -92,7 +92,7 @@ jobs:
       - name: Upload Screenshot Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: screenshot-${{ matrix.lang }}-${{ matrix.browser }}
+          name: screenshot-${{ matrix.lang }}-${{ matrix.browser }}-${{ matrix.device }}
           path: "example_${{ matrix.lang }}_${{ matrix.browser }}_${{ matrix.device}}.png"
           retention-days: 1
           if-no-files-found: error
