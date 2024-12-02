@@ -42,28 +42,26 @@ jobs:
         run: |
           echo "Taking screenshot for ${{ matrix.lang }} using ${{ matrix.browser }}..."
           node -e "
-            const puppeteer = require('puppeteer-core');
+            const puppeteer = require('puppeteer');
             (async () => {
               let browser;
+              const launchOptions = {
+                args: ['--no-sandbox', '--disable-setuid-sandbox']
+              };
+              
               switch ('${{ matrix.browser }}') {
                 case 'chrome':
-                  browser = await puppeteer.launch({
-                    executablePath: 'google-chrome-stable',
-                    args: ['--no-sandbox', '--disable-setuid-sandbox']
-                  });
+                  launchOptions.channel = 'chrome';
                   break;
                 case 'firefox':
-                  browser = await puppeteer.launch({
-                    product: 'firefox',
-                    executablePath: 'firefox'
-                  });
+                  launchOptions.product = 'firefox';
                   break;
                 case 'edge':
-                  browser = await puppeteer.launch({
-                    executablePath: 'microsoft-edge'
-                  });
+                  launchOptions.channel = 'msedge';
                   break;
               }
+              
+              browser = await puppeteer.launch(launchOptions);
               const page = await browser.newPage();
               await page.setViewport({ width: 1200, height: 800 });
               await page.setExtraHTTPHeaders({
