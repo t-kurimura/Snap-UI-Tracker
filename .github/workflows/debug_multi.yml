@@ -51,14 +51,14 @@ jobs:
               
               switch ('${{ matrix.browser }}') {
                 case 'chrome':
-                  launchOptions.executablePath = 'google-chrome-stable';
+                  launchOptions.executablePath = '/usr/bin/google-chrome-stable';
                   break;
                 case 'firefox':
                   launchOptions.product = 'firefox';
-                  launchOptions.executablePath = 'firefox';
+                  launchOptions.executablePath = '/usr/bin/firefox';
                   break;
                 case 'edge':
-                  launchOptions.executablePath = 'microsoft-edge';
+                  launchOptions.executablePath = '/usr/bin/microsoft-edge';
                   break;
               }
               
