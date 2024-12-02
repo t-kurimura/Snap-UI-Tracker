@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         lang: ['ja', 'en', 'zh']
-        browser: ['chrome', 'firefox', 'edge']
+        browser: ['chrome', 'edge']
 
     steps:
       - name: Checkout repository
@@ -19,8 +19,6 @@ jobs:
 
       - uses: browser-actions/setup-chrome@latest
         if: matrix.browser == 'chrome'
-      - uses: browser-actions/setup-firefox@latest
-        if: matrix.browser == 'firefox'
       - uses: browser-actions/setup-edge@latest
         if: matrix.browser == 'edge'
 
@@ -53,10 +51,6 @@ jobs:
               switch ('${{ matrix.browser }}') {
                 case 'chrome':
                   launchOptions.executablePath = '/usr/bin/google-chrome-stable';
-                  break;
-                case 'firefox':
-                  launchOptions.product = 'firefox';
-                  launchOptions.executablePath = '/usr/bin/firefox';
                   break;
                 case 'edge':
                   launchOptions.executablePath = '/usr/bin/microsoft-edge';
