@@ -6,15 +6,23 @@ on:
       - sample/for_blog
 
 jobs:
-  take-screen-shot:
+  screenshot:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         lang: ['ja', 'en', 'zh']
+        browser: ['chrome', 'firefox', 'edge']
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - uses: browser-actions/setup-chrome@latest
+        if: matrix.browser == 'chrome'
+      - uses: browser-actions/setup-firefox@latest
+        if: matrix.browser == 'firefox'
+      - uses: browser-actions/setup-edge@latest
+        if: matrix.browser == 'edge'
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -32,23 +40,36 @@ jobs:
 
       - name: Run Puppeteer script to take a screenshot
         run: |
-          echo "${{ matrix.lang }}..."
+          echo "Taking screenshot for ${{ matrix.lang }} using ${{ matrix.browser }}..."
           node -e "
-            const puppeteer = require('puppeteer');
+            const puppeteer = require('puppeteer-core');
             (async () => {
-              const browser = await puppeteer.launch({});              
-              const page = await browser.newPage();              ;
-              await page.setViewport({
-                width: 1200, 
-                height: 800
-              });
+              let browser;
+              switch ('${{ matrix.browser }}') {
+                case 'chrome':
+                  browser = await puppeteer.launch({
+                    executablePath: 'google-chrome-stable',
+                    args: ['--no-sandbox', '--disable-setuid-sandbox']
+                  });
+                  break;
+                case 'firefox':
+                  browser = await puppeteer.launch({
+                    product: 'firefox',
+                    executablePath: 'firefox'
+                  });
+                  break;
+                case 'edge':
+                  browser = await puppeteer.launch({
+                    executablePath: 'microsoft-edge'
+                  });
+                  break;
+              }
+              const page = await browser.newPage();
+              await page.setViewport({ width: 1200, height: 800 });
               await page.setExtraHTTPHeaders({
                 'Accept-Language': '${{ matrix.lang }}'
               });
-              await page.goto(
-                process.env.URL, 
-                { waitUntil: 'networkidle2' }
-              );
+              await page.goto(process.env.URL, { waitUntil: 'networkidle2' });
               await page.screenshot({
                 path: process.env.FILENAME,
                 fullPage: true
@@ -57,16 +78,14 @@ jobs:
             })();
           "
         env:
-          URL: https://example.com?lang=${{ matrix.lang }}'
-          FILENAME: "example_${{ matrix.lang }}.png"
+          URL: 'https://example.com'
+          FILENAME: "example_${{ matrix.lang }}_${{ matrix.browser }}.png"
 
       - name: Upload Screenshot Artifact
         uses: actions/upload-artifact@v4
-        id: artifact
         with:
-          name: screenshot-${{ matrix.lang }}
-          path: "example_${{ matrix.lang }}.png"
+          name: screenshot-${{ matrix.lang }}-${{ matrix.browser }}
+          path: "example_${{ matrix.lang }}_${{ matrix.browser }}.png"
           retention-days: 1
           if-no-files-found: error
           compression-level: 6
-
